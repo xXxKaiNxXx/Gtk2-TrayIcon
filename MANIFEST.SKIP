@@ -1,0 +1,14 @@
+CVS
+\.bak$
+\.bs$
+TrayIcon.c
+\.o$
+Makefile$
+Makefile\.old$
+~$
+\.sw.$
+\.cvsignore$
+blib
+build
+Gtk2-TrayIcon-.+\.tar\.gz
+
