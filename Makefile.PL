@@ -7,6 +7,38 @@ use ExtUtils::Depends;
 use ExtUtils::PkgConfig;
 use Gtk2::CodeGen;
 
+# minimum required version of dependancies we need to build
+our %build_reqs = (
+	'perl-ExtUtils-Depends'   => '0.1',
+	'perl-ExtUtils-PkgConfig' => '0.1',
+	'perl-Glib'               => '1.00',
+	'perl-Gtk2'               => '1.00',
+);
+
+# Writing a fake Makefile ensures that CPAN will pick up the correct
+# dependencies and install them.
+unless (eval "use ExtUtils::Depends;"
+           . "use ExtUtils::PkgConfig;"
+	   . "use Glib::MakeHelper;"
+	   . "use Gtk2::CodeGen;"
+           # just seeing if Glib is available isn't enough, make sure
+           # it's recent enough, too
+           . "use Glib '$build_reqs{'perl-Glib'}';"
+           . "use Gtk2 '$build_reqs{'perl-Gtk2'}';"
+           . "1") {
+   warn "$@\n";
+   WriteMakefile(
+         PREREQ_FATAL => 1,
+         PREREQ_PM    => {
+            Glib::                => $build_reqs{'perl-Glib'},
+            Gtk2::                => $build_reqs{'perl-Gtk2'},
+            ExtUtils::Depends::   => $build_reqs{'perl-ExtUtils-Depends'},
+            ExtUtils::PkgConfig:: => $build_reqs{'perl-ExtUtils-PkgConfig'},
+         },
+   );
+   exit 1; # not reached
+}
+
 mkdir 'build', 0777;
 
 my %pkgcfg = ExtUtils::PkgConfig->find ('gtk+-2.0');
@@ -23,7 +55,6 @@ $trayicon->add_pm ('TrayIcon.pm' => '$(INST_LIBDIR)/TrayIcon.pm');
 my $cwd = cwd();
 $trayicon->add_typemaps (map {File::Spec->catfile($cwd,$_)} 'build/trayicon.typemap');
 
-# $trayicon->add_headers ('trayicon.h');
 # $trayicon->install (qw(trayicon.h build/trayicon-autogen.h));
 
 $trayicon->install (qw(build/trayicon-autogen.h));
@@ -41,13 +72,20 @@ WriteMakefile(
 );
 
 package MY;
+use Cwd;
 
 sub postamble
 {
-	"
-realclean ::
-	-rm -Rf build
-"
+	return Glib::MakeHelper->postamble_clean ()
+	     . Glib::MakeHelper->postamble_docs (@main::xs_files)
+	     . Glib::MakeHelper->postamble_rpms (
+		'PERL_EXTUTILS_DEPENDS' =>
+			$build_reqs{'perl-ExtUtils-Depends'},
+		'PERL_EXTUTILS_PKGCONFIG' =>
+			$build_reqs{'perl-ExtUtils-PkgConfig'},
+		'PERL_GLIB' => $build_reqs{'perl-Glib'},
+		'PERL_GTK' => $build_reqs{'perl-Gtk2'},
+	       );
 }
 package MAIN;
 # gcc -I. `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0` -DEGG_COMPILATION -DGTK_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DG_DISABLE_DEPRECATED -g -O2 -Wall --shared eggtrayicon.c -o eggtrayicon.o

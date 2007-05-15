@@ -1,3 +1,4 @@
+ChangeLog
 config.h
 eggtrayicon.c
 eggtrayicon.h
@@ -7,6 +8,8 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 maps
 META.yml
+perl-Gtk2-TrayIcon.spec.in
+README
 t/load.t
 TODO
 trayicon.h

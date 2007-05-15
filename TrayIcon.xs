@@ -4,19 +4,21 @@
 
 MODULE = Gtk2::TrayIcon	PACKAGE = Gtk2::TrayIcon	PREFIX = egg_tray_icon_
 
+#ifdef GDK_TYPE_SCREEN
+
 ##  EggTrayIcon *egg_tray_icon_new_for_screen (GdkScreen *screen, const gchar *name) 
 EggTrayIcon *
 egg_tray_icon_new_for_screen (class, screen, name)
-		SV * class
 		GdkScreen *screen
 		const gchar *name
 	C_ARGS:
 		screen, name
 
+#endif
+
 ##  EggTrayIcon *egg_tray_icon_new (const gchar *name) 
 EggTrayIcon *
 egg_tray_icon_new (class, name)
-		SV * class
 		const gchar *name
 	C_ARGS:
 		name
